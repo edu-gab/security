@@ -18,13 +18,15 @@ router.get('/', async function(req, res, next) {
 
   let rolesCollection = await models.roles.findAll({})
 
-  res.render('crud', {title: 'CRUD with users', usersArray: usersCollection, rolesArray: rolesCollection});
+  res.render('crud', { username: req.cookies['username'], title: 'CRUD with users', usersArray: usersCollection, rolesArray: rolesCollection})
 });
 
 router.post('/', async (req, res) => {
+  
   let{ name, password, idrole } = req.body;
 
   try{
+    
     let salt = process.env.SALT
     let hash = crypto.createHmac('sha512', salt).update(password).digest("base64");
     let passwordHash = salt + "$" + hash

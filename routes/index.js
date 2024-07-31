@@ -22,7 +22,12 @@ router.post('/login', async function (req, res, next) {
       let userData = await models.users.findOne({
         where: {
           name: username
-        }
+          
+        },
+
+        include: { all: true, nested: true },
+        raw: true,
+        nest: true
       })
 
       if (userData != null && userData.password != null) {
@@ -32,6 +37,19 @@ router.post('/login', async function (req, res, next) {
         let passwordHash = salt + "$" + hash
 
         if (passwordHash === userData.password) {
+          const options = {
+            expires: new Date(
+              Date.now() + (60 * 1000)
+            )
+          }
+
+          res.cookie("username", username, options)
+
+          req.session.loggedin = true;
+          req.session.username = username;
+
+          req.session.role = userData.users_roles.roles_idrole_role.name
+
           res.redirect('/users');
         } else {
           res.redirect('/');
@@ -48,5 +66,10 @@ router.post('/login', async function (req, res, next) {
   }
 
 });
+
+router.get('/logout', function(req, res , next){
+  req.session.destroy();
+  res.render('index');
+})
 
 module.exports = router;
